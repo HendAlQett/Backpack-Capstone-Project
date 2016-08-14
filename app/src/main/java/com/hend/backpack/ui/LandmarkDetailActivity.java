@@ -1,7 +1,9 @@
 package com.hend.backpack.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -9,6 +11,14 @@ import android.view.MenuItem;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.hend.backpack.R;
 
 /**
@@ -17,9 +27,10 @@ import com.hend.backpack.R;
  * item details are presented side-by-side with a list of items
  * in a {@link LandmarkListActivity}.
  */
-public class LandmarkDetailActivity extends AppCompatActivity {
+public class LandmarkDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     AdView mAdView;
+    LatLng landmarkLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +41,10 @@ public class LandmarkDetailActivity extends AppCompatActivity {
         mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -54,9 +69,11 @@ public class LandmarkDetailActivity extends AppCompatActivity {
         //
         // http://developer.android.com/guide/components/fragments.html
         //
-        if (savedInstanceState == null) {
+        //TODO: uncomment this if condition when handling orientation and make sure landmark location is declared
+//        if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
+            landmarkLocation = new LatLng(30.0286342, 31.2619385);
             Bundle arguments = new Bundle();
             arguments.putString(LandmarkDetailFragment.ARG_ITEM_ID,
                     getIntent().getStringExtra(LandmarkDetailFragment.ARG_ITEM_ID));
@@ -65,7 +82,7 @@ public class LandmarkDetailActivity extends AppCompatActivity {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.landmark_detail_container, fragment)
                     .commit();
-        }
+//        }
     }
 
     @Override
@@ -82,5 +99,26 @@ public class LandmarkDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        CameraPosition camera = CameraPosition.builder()
+                .target(landmarkLocation)
+                .zoom(15)
+                .build();
+        //TODO: get location name from backend
+        MarkerOptions marker = new MarkerOptions().position(landmarkLocation).title("Location Name");
+        googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(camera));
+        //Clicking on the marker will show navigation option
+        googleMap.addMarker(marker);
+        googleMap.addCircle(new CircleOptions()
+                .center(landmarkLocation)
+                .radius(500)
+                .strokeColor(ContextCompat.getColor(this, R.color.colorAccent))
+                .fillColor(Color.argb(64, 25, 196, 216)));
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+
+
     }
 }

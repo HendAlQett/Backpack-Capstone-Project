@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         gridLayout = new GridLayoutManager(MainActivity.this, 2);
-        landmarkRecycler = (RecyclerView) findViewById(R.id.recylcerView);
+        landmarkRecycler = (RecyclerView) findViewById(R.id.recyclerView);
         landmarkRecycler.setHasFixedSize(true);
         landmarkRecycler.setLayoutManager(gridLayout);
         landmarksList = new ArrayList<>();
