@@ -18,6 +18,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.hend.backpack.R;
 
 /**
@@ -68,7 +69,8 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
         //
         // http://developer.android.com/guide/components/fragments.html
         //
-        if (savedInstanceState == null) {
+        //TODO: uncomment this if condition when handling orientation and make sure landmark location is declared
+//        if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             landmarkLocation = new LatLng(30.0286342, 31.2619385);
@@ -80,7 +82,7 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.landmark_detail_container, fragment)
                     .commit();
-        }
+//        }
     }
 
     @Override
@@ -105,12 +107,17 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
                 .target(landmarkLocation)
                 .zoom(15)
                 .build();
+        //TODO: get location name from backend
+        MarkerOptions marker = new MarkerOptions().position(landmarkLocation).title("Location Name");
         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(camera));
+        //Clicking on the marker will show navigation option
+        googleMap.addMarker(marker);
         googleMap.addCircle(new CircleOptions()
                 .center(landmarkLocation)
                 .radius(500)
                 .strokeColor(ContextCompat.getColor(this, R.color.colorAccent))
                 .fillColor(Color.argb(64, 25, 196, 216)));
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
 
 
     }
