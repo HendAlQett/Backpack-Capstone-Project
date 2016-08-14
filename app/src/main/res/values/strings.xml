@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Backpack</string>
+    <string name="title_landmark_list">Landmarks</string>
+    <string name="title_landmark_detail">Landmark Detail</string>
+    <string name="banner_ad_unit_id"></string>
+
 </resources>
