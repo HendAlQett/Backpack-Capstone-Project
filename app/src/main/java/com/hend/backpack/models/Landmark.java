@@ -24,11 +24,11 @@ public class Landmark {
     @SerializedName("longitude")
     double longitude;
     @SerializedName("radius")
-    double radius;
+    int radius;
     @SerializedName("street_view")
     boolean street_view;
 
-    public Landmark(int id, String name_en, String name_ar, String description_en, String description_ar, String image_url, double latitude, double longitude, double radius, boolean street_view) {
+    public Landmark(int id, String name_en, String name_ar, String description_en, String description_ar, String image_url, double latitude, double longitude, int radius, boolean street_view) {
         this.id = id;
         this.name_en = name_en;
         this.name_ar = name_ar;
@@ -105,11 +105,11 @@ public class Landmark {
         this.longitude = longitude;
     }
 
-    public double getRadius() {
+    public int getRadius() {
         return radius;
     }
 
-    public void setRadius(double radius) {
+    public void setRadius(int radius) {
         this.radius = radius;
     }
 

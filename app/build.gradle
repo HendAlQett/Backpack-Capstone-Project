@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
+
 
 android {
     compileSdkVersion 24
@@ -12,6 +14,7 @@ android {
         versionName "1.0"
         // Enabling multidex support.
         multiDexEnabled true
+
     }
     buildTypes {
         release {
@@ -19,6 +22,26 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    apt {
+        arguments {
+            schematicOutPackage 'com.hend.backpack.data.LandmarkProvider'
+
+        }
+    }
+//    buildscript {
+//        repositories {
+//            mavenCentral()
+//        }
+//
+//        dependencies {
+//
+//            classpath 'com.neenbedankt.gradle.plugins:android-apt:1.7'
+//        }
+//    }
+//    apply plugin: 'com.neenbedankt.android-apt'
+
+
+
     dexOptions {
         javaMaxHeapSize "4g"
     }
@@ -40,4 +63,6 @@ dependencies {
     compile 'com.google.android.gms:play-services:9.2.1'
     compile 'com.android.support:multidex:1.0.0'
     compile 'com.android.support:cardview-v7:24.0.0'
+    compile 'net.simonvt.schematic:schematic:0.6.7'
+    apt 'net.simonvt.schematic:schematic-compiler:0.6.7'
 }

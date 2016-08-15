@@ -1,6 +1,11 @@
 package com.hend.backpack.ui;
 
+import android.content.ContentProviderOperation;
+import android.content.Context;
+import android.content.OperationApplicationException;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -10,6 +15,8 @@ import android.util.Log;
 import com.hend.backpack.R;
 import com.hend.backpack.adapters.LandmarkRecyclerViewAdapter;
 import com.hend.backpack.apis.RestClient;
+import com.hend.backpack.data.LandmarkColumns;
+import com.hend.backpack.data.LandmarkProvider;
 import com.hend.backpack.models.Landmark;
 
 import java.util.ArrayList;
@@ -36,8 +43,9 @@ public class LandmarkListActivity extends AppCompatActivity {
     private boolean mTwoPane;
     List<Landmark> landmarksList;
     LandmarkRecyclerViewAdapter adapter;
-    @NonNull RecyclerView recyclerView;
-//    private GridLayoutManager gridLayout;
+    @NonNull
+    RecyclerView recyclerView;
+    //    private GridLayoutManager gridLayout;
     final String LOG_TAG = LandmarkListActivity.class.getSimpleName();
 
     @Override
@@ -62,8 +70,11 @@ public class LandmarkListActivity extends AppCompatActivity {
         assert recyclerView != null;
         landmarksList = new ArrayList<>();
         setupRecyclerView();
-        getLandmarks();
-
+        getLandmarksFromDatabase();
+        if (landmarksList.isEmpty()) {
+            Log.d(LOG_TAG,"Downloading");
+            getLandmarks();
+        }
 
         if (findViewById(R.id.landmark_detail_container) != null) {
             // The detail container view will be present only in the
@@ -94,6 +105,7 @@ public class LandmarkListActivity extends AppCompatActivity {
                 for (Landmark landmark : landmarks) {
                     Log.d(LOG_TAG, landmark.getName_en());
                 }
+                updateDatabase(LandmarkListActivity.this, landmarksList);
             }
 
             @Override
@@ -101,6 +113,79 @@ public class LandmarkListActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public void updateDatabase(Context context, List<Landmark> landmarks) {
+        getContentResolver().delete(LandmarkProvider.Landmarks.CONTENT_URI, null, null);
+        ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>(landmarks.size());
+
+//        Log.d(LOG_TAG, "Data is inserted");
+        for (Landmark landmark : landmarks) {
+            ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(
+                    LandmarkProvider.Landmarks.CONTENT_URI);
+            builder.withValue(LandmarkColumns.LANDMARK_ID, landmark.getId());
+            builder.withValue(LandmarkColumns.LANDMARK_NAME_EN, landmark.getName_en());
+            builder.withValue(LandmarkColumns.LANDMARK_NAME_AR, landmark.getName_ar());
+            builder.withValue(LandmarkColumns.LANDMARK_DESCRIPTION_EN, landmark.getDescription_en());
+            builder.withValue(LandmarkColumns.LANDMARK_DESCRIPTION_AR, landmark.getDescription_ar());
+            builder.withValue(LandmarkColumns.LANDMARK_IMAGE_URL, landmark.getImage_url());
+            builder.withValue(LandmarkColumns.LANDMARK_RADIUS, landmark.getRadius());
+            builder.withValue(LandmarkColumns.LATITUDE, landmark.getLatitude());
+            builder.withValue(LandmarkColumns.LONGITUDE, landmark.getLatitude());
+            builder.withValue(LandmarkColumns.FLAG_STREET_VIEW, landmark.isStreet_view());
+            batchOperations.add(builder.build());
+        }
+
+        try {
+            getContentResolver().applyBatch(LandmarkProvider.AUTHORITY, batchOperations);
+            Log.d(LOG_TAG, "Data is inserted");
+        } catch (RemoteException | OperationApplicationException e) {
+            Log.e("Insert Error", "Error applying batch insert", e);
+        }
+
+
+    }
+
+    void getLandmarksFromDatabase() {
+        landmarksList.clear();
+        Cursor cursor = getContentResolver().query(LandmarkProvider.Landmarks.CONTENT_URI,
+                null, null, null, null);
+        if (cursor.getCount() != 0 && cursor != null) {
+            Log.d(LOG_TAG,"Getting from Provider");
+            int landmarkId, radius;
+            boolean streetView;
+            Double latitude, longitude;
+            String nameEn, nameAr, descriptionEn, descriptionAr, imageUrl;
+
+            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+
+                landmarkId = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_ID));
+                nameEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_EN));
+                nameAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_AR));
+                descriptionEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_EN));
+                descriptionAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_AR));
+                imageUrl = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_IMAGE_URL));
+                latitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LATITUDE));
+                longitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LONGITUDE));
+
+                radius = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_RADIUS));
+
+                streetView = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.FLAG_STREET_VIEW)) > 0 ? true : false;
+
+
+                Landmark landmark = new Landmark(landmarkId, nameEn, nameAr, descriptionEn, descriptionAr, imageUrl, latitude, longitude, radius, streetView);
+                landmarksList.add(landmark);
+            }
+
+            cursor.close();
+        }
+        if (landmarksList.size() > 0) {
+            adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
+            recyclerView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
+        }
+
+
     }
 
 //    public class SimpleItemRecyclerViewAdapter
