@@ -2,7 +2,6 @@ package com.hend.backpack.ui;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ContentProviderOperation;
 import android.content.Context;
@@ -10,19 +9,17 @@ import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -146,6 +143,32 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_landmarkslist, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    @Override
     protected void onStart() {
         super.onStart();
         if (!mGoogleApiClient.isConnecting() || !mGoogleApiClient.isConnected()) {
@@ -167,14 +190,25 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
     @TargetApi(Build.VERSION_CODES.M)
     private boolean hasPermission(String perm) {
-        return (PackageManager.PERMISSION_GRANTED == checkSelfPermission(perm));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return (PackageManager.PERMISSION_GRANTED == checkSelfPermission(perm));
+        }
+        return true;
     }
 
     private void setupRecyclerView() {
 //        gridLayout = new GridLayoutManager(this, 2);
         recyclerView.setHasFixedSize(true);
 //        recyclerView.setLayoutManager(gridLayout);
-        adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
+        adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, new LandmarkRecyclerViewAdapter.LandmarkAdapterOnClickHandler() {
+            @Override
+            public void onClick(Landmark landmark, LandmarkRecyclerViewAdapter.LandmarkAdapterViewHolder vh) {
+                Toast.makeText(LandmarkListActivity.this, landmark.getName_en(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(LandmarkListActivity.this, LandmarkDetailActivity.class);
+                startActivity(intent);
+            }
+        }, landmarksList);
         recyclerView.setAdapter(adapter);
     }
 
@@ -184,7 +218,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             public void success(List<Landmark> landmarks, Response response) {
                 landmarksList.clear();
                 landmarksList = landmarks;
-                adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
+//                adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
                 recyclerView.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
                 for (Landmark landmark : landmarks) {
@@ -265,7 +299,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             cursor.close();
         }
         if (landmarksList.size() > 0) {
-            adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
+//            adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         }
@@ -324,6 +358,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     }
 
     public void populateGeofenceList() {
+        //TODO: get data from websrvice
         for (Map.Entry<String, LatLng> entry : Constants.BAY_AREA_LANDMARKS.entrySet()) {
 
             mGeofenceList.add(new Geofence.Builder()
@@ -331,19 +366,13 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                     // geofence.
                     .setRequestId(entry.getKey())
 
-                    // Set the circular region of this geofence.
+                    // TODO: from service, Set the circular region of this geofence.
                     .setCircularRegion(
                             entry.getValue().latitude,
                             entry.getValue().longitude,
                             Constants.GEOFENCE_RADIUS_IN_METERS
                     )
-
-                    // Set the expiration duration of the geofence. This geofence gets automatically
-                    // removed after this period of time.
-                    .setExpirationDuration(Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-
-                    // Set the transition types of interest. Alerts are only generated for these
-                    // transition. We track entry and exit transitions in this sample.
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
                             Geofence.GEOFENCE_TRANSITION_EXIT)
 
@@ -365,7 +394,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_EXIT);
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(mGeofenceList);
         return builder.build();
     }
@@ -418,47 +447,47 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         }
     }
 
-    private void test_sendNotification(String notificationDetails) {
-        // Create an explicit content Intent that starts the main Activity.
-        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
-
-        // Construct a task stack.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-
-        // Add the main Activity to the task stack as the parent.
-        stackBuilder.addParentStack(MainActivity.class);
-
-        // Push the content Intent onto the stack.
-        stackBuilder.addNextIntent(notificationIntent);
-
-        // Get a PendingIntent containing the entire back stack.
-        PendingIntent notificationPendingIntent =
-                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        // Get a notification builder that's compatible with platform versions >= 4
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-
-        // Define the notification settings.
-        builder.setSmallIcon(R.mipmap.ic_launcher)
-                // In a real app, you may want to use a library like Volley
-                // to decode the Bitmap.
-                .setLargeIcon(BitmapFactory.decodeResource(getResources(),
-                        R.mipmap.ic_launcher))
-                .setColor(Color.RED)
-                .setContentTitle(notificationDetails)
-                .setContentText(getString(R.string.geofence_transition_notification_text))
-                .setContentIntent(notificationPendingIntent);
-
-        // Dismiss notification once the user touches it.
-        builder.setAutoCancel(true);
-
-        // Get an instance of the Notification manager
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        // Issue the notification
-        mNotificationManager.notify(0, builder.build());
-    }
+//    private void test_sendNotification(String notificationDetails) {
+//        // Create an explicit content Intent that starts the main Activity.
+//        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+//
+//        // Construct a task stack.
+//        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+//
+//        // Add the main Activity to the task stack as the parent.
+//        stackBuilder.addParentStack(MainActivity.class);
+//
+//        // Push the content Intent onto the stack.
+//        stackBuilder.addNextIntent(notificationIntent);
+//
+//        // Get a PendingIntent containing the entire back stack.
+//        PendingIntent notificationPendingIntent =
+//                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+//
+//        // Get a notification builder that's compatible with platform versions >= 4
+//        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+//
+//        // Define the notification settings.
+//        builder.setSmallIcon(R.mipmap.ic_launcher)
+//                // In a real app, you may want to use a library like Volley
+//                // to decode the Bitmap.
+//                .setLargeIcon(BitmapFactory.decodeResource(getResources(),
+//                        R.mipmap.ic_launcher))
+//                .setColor(Color.RED)
+//                .setContentTitle(notificationDetails)
+//                .setContentText(getString(R.string.geofence_transition_notification_text))
+//                .setContentIntent(notificationPendingIntent);
+//
+//        // Dismiss notification once the user touches it.
+//        builder.setAutoCancel(true);
+//
+//        // Get an instance of the Notification manager
+//        NotificationManager mNotificationManager =
+//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//
+//        // Issue the notification
+//        mNotificationManager.notify(0, builder.build());
+//    }
 
 //    public class SimpleItemRecyclerViewAdapter
 //            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {

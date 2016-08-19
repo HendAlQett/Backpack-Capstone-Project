@@ -21,9 +21,12 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
 
     Context mContext;
     List<Landmark> mLandmarks;
+    final private LandmarkAdapterOnClickHandler mClickHandler;
 
-    public LandmarkRecyclerViewAdapter(Context mContext, List<Landmark> mLandmarks) {
+
+    public LandmarkRecyclerViewAdapter(Context mContext, LandmarkAdapterOnClickHandler dh, List<Landmark> mLandmarks) {
         this.mContext = mContext;
+        this.mClickHandler= dh;
         this.mLandmarks = mLandmarks;
 
     }
@@ -69,7 +72,12 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
 
         @Override
         public void onClick(View v) {
+
             int adapterPosition = getAdapterPosition();
+//            mCursor.moveToPosition(adapterPosition);
+//            int dateColumnIndex = mCursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
+            mClickHandler.onClick(mLandmarks.get(adapterPosition), this);
+
 //            mCursor.moveToPosition(adapterPosition);
 //            int dateColumnIndex = mCursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
 //            mClickHandler.onClick(mCursor.getLong(dateColumnIndex), this);
@@ -78,7 +86,7 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
     }
 
     public static interface LandmarkAdapterOnClickHandler {
-        void onClick(Long date, LandmarkAdapterViewHolder vh);
+        void onClick(Landmark landmark, LandmarkAdapterViewHolder vh);
     }
 
 }

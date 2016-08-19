@@ -25,7 +25,8 @@
             android:layout_gravity="bottom"
             android:layout_margin="16dp"
             android:padding="16dp"
-            android:text="Street View"
+            android:text="@string/street_view"
+            android:contentDescription="@string/street_view"
             android:textColor="@android:color/white"
             app:backgroundTint="@color/colorAccent" />
     </LinearLayout>
