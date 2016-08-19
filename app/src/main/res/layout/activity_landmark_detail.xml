@@ -60,19 +60,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="400dp"
                 map:cameraZoom="16"
-                android:layout_below="@id/landmark_detail_container"/>
+                android:layout_below="@id/landmark_detail_container"
+                android:layout_marginBottom="50dp"/>
         </RelativeLayout>
     </android.support.v4.widget.NestedScrollView>
-
-    <!--<android.support.design.widget.FloatingActionButton-->
-    <!--android:id="@+id/fab"-->
-    <!--android:layout_width="wrap_content"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--android:layout_gravity="center_vertical|start"-->
-    <!--android:layout_margin="@dimen/fab_margin"-->
-    <!--android:src="@android:drawable/stat_notify_chat"-->
-    <!--app:layout_anchor="@+id/landmark_detail_container"-->
-    <!--app:layout_anchorGravity="top|end" />-->
     <com.google.android.gms.ads.AdView
         android:id="@+id/adView"
         android:layout_width="match_parent"
