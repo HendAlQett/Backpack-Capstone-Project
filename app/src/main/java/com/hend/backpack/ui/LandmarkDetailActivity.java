@@ -20,6 +20,8 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.hend.backpack.R;
+import com.hend.backpack.models.Landmark;
+import com.hend.backpack.utils.Constants;
 
 /**
  * An activity representing a single Landmark detail screen. This
@@ -27,7 +29,7 @@ import com.hend.backpack.R;
  * item details are presented side-by-side with a list of items
  * in a {@link LandmarkListActivity}.
  */
-public class LandmarkDetailActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class LandmarkDetailActivity extends AppCompatActivity implements OnMapReadyCallback, LandmarkDetailFragment.Callback{
 
     AdView mAdView;
     LatLng landmarkLocation;
@@ -120,5 +122,12 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 
 
+    }
+
+    @Override
+    public void onStreetViewClicked(Landmark landmark) {
+        Intent streetViewIntent = new Intent(this, StreetViewActivity.class);
+        streetViewIntent.putExtra(Constants.STREET_VIEW,landmark);
+        startActivity(streetViewIntent);
     }
 }

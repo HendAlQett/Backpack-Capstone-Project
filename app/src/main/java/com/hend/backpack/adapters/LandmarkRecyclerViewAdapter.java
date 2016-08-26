@@ -1,6 +1,7 @@
 package com.hend.backpack.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +10,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.hend.backpack.R;
+import com.hend.backpack.data.LandmarkColumns;
 import com.hend.backpack.models.Landmark;
 
 import java.util.List;
@@ -26,7 +29,7 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
 
     public LandmarkRecyclerViewAdapter(Context mContext, LandmarkAdapterOnClickHandler dh, List<Landmark> mLandmarks) {
         this.mContext = mContext;
-        this.mClickHandler= dh;
+        this.mClickHandler = dh;
         this.mLandmarks = mLandmarks;
 
     }
@@ -40,14 +43,14 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
 
     @Override
     public void onBindViewHolder(LandmarkAdapterViewHolder holder, int position) {
-        Landmark landmark= mLandmarks.get(position);
+        Landmark landmark = mLandmarks.get(position);
         holder.tvLandmark.setText(landmark.getName_en());
         Glide.with(mContext)
                 .load(landmark.getImage_url())
                 .centerCrop()
                 .error(R.mipmap.ic_launcher)
                 .crossFade()
-
+                .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                 .into(holder.ivLandmark);
 
     }
@@ -83,6 +86,34 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
 //            mClickHandler.onClick(mCursor.getLong(dateColumnIndex), this);
 //            mICM.onClick(this);
         }
+    }
+
+    public void swapCursor(Cursor cursor) {
+        mLandmarks.clear();
+        if (cursor != null && cursor.getCount() != 0) {
+            int landmarkId, radius;
+            boolean streetView;
+            Double latitude, longitude;
+            String nameEn, nameAr, descriptionEn, descriptionAr, imageUrl;
+
+            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+                // The Cursor is now set to the right position
+                landmarkId = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_ID));
+                nameEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_EN));
+                nameAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_AR));
+                descriptionEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_EN));
+                descriptionAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_AR));
+                imageUrl = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_IMAGE_URL));
+                latitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LATITUDE));
+                longitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LONGITUDE));
+                radius = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_RADIUS));
+                streetView = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.FLAG_STREET_VIEW)) > 0 ? true : false;
+                mLandmarks.add(new Landmark(landmarkId, nameEn, nameAr, descriptionEn, descriptionAr, imageUrl, latitude, longitude, radius, streetView));
+            }
+        }
+
+        notifyDataSetChanged();
+//        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     public static interface LandmarkAdapterOnClickHandler {

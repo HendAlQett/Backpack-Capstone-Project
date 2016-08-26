@@ -46,4 +46,6 @@ public class Constants {
         // Test
         BAY_AREA_LANDMARKS.put("Home", new LatLng(30.003389,  31.316339));
     }
+
+    public static final String STREET_VIEW= "Street_View";
 }

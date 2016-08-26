@@ -2,10 +2,13 @@ package com.hend.backpack.ui;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.LoaderManager;
 import android.app.PendingIntent;
 import android.content.ContentProviderOperation;
 import android.content.Context;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.OperationApplicationException;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -35,6 +38,7 @@ import com.hend.backpack.R;
 import com.hend.backpack.adapters.LandmarkRecyclerViewAdapter;
 import com.hend.backpack.apis.RestClient;
 import com.hend.backpack.data.LandmarkColumns;
+import com.hend.backpack.data.LandmarkDatabase;
 import com.hend.backpack.data.LandmarkProvider;
 import com.hend.backpack.models.Landmark;
 import com.hend.backpack.services.GeoFenceTransitionsIntentService;
@@ -57,7 +61,7 @@ import retrofit.client.Response;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class LandmarkListActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
+public class LandmarkListActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, LandmarkDetailFragment.Callback, LoaderManager.LoaderCallbacks<Cursor> {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -77,6 +81,41 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     };
     private static final int INITIAL_REQUEST = 1337;
     private static final int LOCATION_REQUEST = INITIAL_REQUEST + 1;
+    final static int LANDMARK_LOADER = 0;
+    private static final String[] LANDMARK_COLUMNS = {
+            // In this case the id needs to be fully qualified with a table name, since
+            // the content provider joins the location & weather tables in the background
+            // (both have an _id column)
+            // On the one hand, that's annoying.  On the other, you can search the weather table
+            // using the location set by the user, which is only in the Location table.
+            // So the convenience is worth it.
+            LandmarkDatabase.LANDMARKS + "." + LandmarkColumns.ID,
+            LandmarkColumns.LANDMARK_ID,
+            LandmarkColumns.LANDMARK_NAME_EN,
+            LandmarkColumns.LANDMARK_NAME_AR,
+            LandmarkColumns.LANDMARK_DESCRIPTION_EN,
+            LandmarkColumns.LANDMARK_DESCRIPTION_AR,
+            LandmarkColumns.LANDMARK_IMAGE_URL,
+            LandmarkColumns.LATITUDE,
+            LandmarkColumns.LONGITUDE,
+            LandmarkColumns.LANDMARK_RADIUS,
+            LandmarkColumns.FLAG_STREET_VIEW
+    };
+
+    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
+    // must change.
+    static final int COL_ID = 0;
+    static final int COL_LANDMARK_ID = 1;
+    static final int COL_LANDMARK_NAME_EN = 2;
+    static final int COL_LANDMARK_NAME_AR = 3;
+    static final int COL_LANDMARK_DESCRIPTION_EN = 4;
+    static final int COL_LANDMARK_DESCRIPTION_AR = 5;
+    static final int COL_LANDMARK_IMAGE_URL = 6;
+    static final int COL_LATITUDE = 7;
+    static final int COL_LONGITUDE = 8;
+    static final int COL_LANDMARK_RADIUS = 9;
+    static final int COL_FLAG_STREET_VIEW = 10;
+
 
     @TargetApi(Build.VERSION_CODES.M)
     @Override
@@ -113,11 +152,14 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         assert recyclerView != null;
         landmarksList = new ArrayList<>();
         setupRecyclerView();
-        getLandmarksFromDatabase();
+//        getLandmarksFromDatabase();
+
         if (landmarksList.isEmpty()) {
             Log.d(LOG_TAG, "Downloading");
             getLandmarks();
+
         }
+        getLoaderManager().initLoader(LANDMARK_LOADER, null, this);
 
         if (findViewById(R.id.landmark_detail_container) != null) {
             // The detail container view will be present only in the
@@ -218,18 +260,41 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             public void success(List<Landmark> landmarks, Response response) {
                 landmarksList.clear();
                 landmarksList = landmarks;
-//                adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
-                recyclerView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
                 for (Landmark landmark : landmarks) {
                     Log.d(LOG_TAG, landmark.getName_en());
                 }
+                //TODO: This should be inside loader
                 updateDatabase(LandmarkListActivity.this, landmarksList);
             }
 
             @Override
             public void failure(RetrofitError error) {
+                Log.e(LOG_TAG,error.getKind().name());
+                Log.e(LOG_TAG,error.getMessage());
+                switch (error.getKind()) {
+                    case HTTP:
+                        // TODO get message from getResponse()'s body or HTTP status 404 Web page not available
+                        Log.e(LOG_TAG,error.getResponse().getReason());
+                        Log.e(LOG_TAG,""+error.getResponse().getStatus());
+                        break;
 
+                    case NETWORK:
+                        // TODO get message from getCause()'s message or just declare "network problem"
+                        Log.e(LOG_TAG,error.getCause().getMessage());
+
+                        break;
+
+                    case CONVERSION:
+                        Log.e(LOG_TAG,"Invalid json");
+                        break;
+                    case UNEXPECTED:
+                        throw error;
+
+                    default:
+                        throw new AssertionError("Unknown error kind: " + error.getKind());
+                }
+
+//                Log.d(LOG_TAG,error.getBody().toString());
             }
         });
     }
@@ -257,6 +322,8 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
         try {
             getContentResolver().applyBatch(LandmarkProvider.AUTHORITY, batchOperations);
+            //TODO: get called from Loader
+//            getLandmarksFromDatabase();
             Log.d(LOG_TAG, "Data is inserted");
         } catch (RemoteException | OperationApplicationException e) {
             Log.e("Insert Error", "Error applying batch insert", e);
@@ -265,47 +332,44 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
     }
 
-    void getLandmarksFromDatabase() {
-        landmarksList.clear();
-        Cursor cursor = getContentResolver().query(LandmarkProvider.Landmarks.CONTENT_URI,
-                null, null, null, null);
-        if (cursor.getCount() != 0 && cursor != null) {
-            Log.d(LOG_TAG, "Getting from Provider");
-            int landmarkId, radius;
-            boolean streetView;
-            Double latitude, longitude;
-            String nameEn, nameAr, descriptionEn, descriptionAr, imageUrl;
-
-            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-
-                landmarkId = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_ID));
-                nameEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_EN));
-                nameAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_AR));
-                descriptionEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_EN));
-                descriptionAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_AR));
-                imageUrl = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_IMAGE_URL));
-                latitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LATITUDE));
-                longitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LONGITUDE));
-
-                radius = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_RADIUS));
-
-                streetView = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.FLAG_STREET_VIEW)) > 0 ? true : false;
-
-
-                Landmark landmark = new Landmark(landmarkId, nameEn, nameAr, descriptionEn, descriptionAr, imageUrl, latitude, longitude, radius, streetView);
-                landmarksList.add(landmark);
-            }
-
-            cursor.close();
-        }
-        if (landmarksList.size() > 0) {
-//            adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
-            recyclerView.setAdapter(adapter);
-            adapter.notifyDataSetChanged();
-        }
-
-
-    }
+//    void getLandmarksFromDatabase() {
+//        landmarksList.clear();
+//        Cursor cursor = getContentResolver().query(LandmarkProvider.Landmarks.CONTENT_URI,
+//                null, null, null, null);
+//        if (cursor.getCount() != 0 && cursor != null) {
+//            Log.d(LOG_TAG, "Getting from Provider");
+//            int landmarkId, radius;
+//            boolean streetView;
+//            Double latitude, longitude;
+//            String nameEn, nameAr, descriptionEn, descriptionAr, imageUrl;
+//
+//            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+//
+//                landmarkId = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_ID));
+//                nameEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_EN));
+//                nameAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_AR));
+//                descriptionEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_EN));
+//                descriptionAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_AR));
+//                imageUrl = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_IMAGE_URL));
+//                latitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LATITUDE));
+//                longitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LONGITUDE));
+//                radius = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_RADIUS));
+//                streetView = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.FLAG_STREET_VIEW)) > 0 ? true : false;
+//
+//                Landmark landmark = new Landmark(landmarkId, nameEn, nameAr, descriptionEn, descriptionAr, imageUrl, latitude, longitude, radius, streetView);
+//                landmarksList.add(landmark);
+//            }
+//
+//            cursor.close();
+//        }
+//        if (landmarksList.size() > 0) {
+////            adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
+////            recyclerView.setAdapter(adapter);
+//            adapter.notifyDataSetChanged();
+//        }
+//
+//
+//    }
 
 
     private PendingIntent getGeofencePendingIntent() {
@@ -447,47 +511,31 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         }
     }
 
-//    private void test_sendNotification(String notificationDetails) {
-//        // Create an explicit content Intent that starts the main Activity.
-//        Intent notificationIntent = new Intent(getApplicationContext(), MainActivity.class);
-//
-//        // Construct a task stack.
-//        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-//
-//        // Add the main Activity to the task stack as the parent.
-//        stackBuilder.addParentStack(MainActivity.class);
-//
-//        // Push the content Intent onto the stack.
-//        stackBuilder.addNextIntent(notificationIntent);
-//
-//        // Get a PendingIntent containing the entire back stack.
-//        PendingIntent notificationPendingIntent =
-//                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//        // Get a notification builder that's compatible with platform versions >= 4
-//        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-//
-//        // Define the notification settings.
-//        builder.setSmallIcon(R.mipmap.ic_launcher)
-//                // In a real app, you may want to use a library like Volley
-//                // to decode the Bitmap.
-//                .setLargeIcon(BitmapFactory.decodeResource(getResources(),
-//                        R.mipmap.ic_launcher))
-//                .setColor(Color.RED)
-//                .setContentTitle(notificationDetails)
-//                .setContentText(getString(R.string.geofence_transition_notification_text))
-//                .setContentIntent(notificationPendingIntent);
-//
-//        // Dismiss notification once the user touches it.
-//        builder.setAutoCancel(true);
-//
-//        // Get an instance of the Notification manager
-//        NotificationManager mNotificationManager =
-//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//
-//        // Issue the notification
-//        mNotificationManager.notify(0, builder.build());
-//    }
+    @Override
+    public void onStreetViewClicked(Landmark landmark) {
+        Intent streetViewIntent = new Intent(this, StreetViewActivity.class);
+        streetViewIntent.putExtra(Constants.STREET_VIEW, landmark);
+        startActivity(streetViewIntent);
+    }
+
+    @Override
+    public Loader onCreateLoader(int id, Bundle args) {
+//        Uri landmarkUri = LandmarkProvider.Landmarks.CONTENT_URI
+        return new CursorLoader(this, LandmarkProvider.Landmarks.CONTENT_URI, LANDMARK_COLUMNS, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.d(LOG_TAG, "onLoadFinished");
+        adapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursor) {
+        Log.d(LOG_TAG, "onLoadReset");
+        adapter.swapCursor(null);
+    }
+
 
 //    public class SimpleItemRecyclerViewAdapter
 //            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {

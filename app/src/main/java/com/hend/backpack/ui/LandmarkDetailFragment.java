@@ -4,13 +4,18 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.AppCompatButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.hend.backpack.R;
+import com.hend.backpack.models.Landmark;
 import com.hend.backpack.ui.dummy.DummyContent;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * A fragment representing a single Landmark detail screen.
@@ -24,6 +29,10 @@ public class LandmarkDetailFragment extends Fragment {
      * represents.
      */
     public static final String ARG_ITEM_ID = "item_id";
+    @BindView(R.id.tvLandmarkDescription)
+    TextView tvLandmarkDescription;
+    @BindView(R.id.btnStreetView)
+    AppCompatButton btnStreetView;
 
     /**
      * The dummy content this fragment is presenting.
@@ -57,6 +66,10 @@ public class LandmarkDetailFragment extends Fragment {
         }
     }
 
+    public interface Callback {
+        public void onStreetViewClicked(Landmark landmark);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -64,10 +77,13 @@ public class LandmarkDetailFragment extends Fragment {
 
         // Show the dummy content as text in a TextView.
 //        if (mItem != null) {
-            //TODO: Uncomment this later
-            ((TextView) rootView.findViewById(R.id.landmark_detail)).setText("this where description should be Details text is toooooooooo long");
+        //TODO: Uncomment this later
+//        ((TextView) rootView.findViewById(R.id.landmark_detail)).setText("this where description should be Details text is toooooooooo long");
 //        }
+        ButterKnife.bind(this, rootView);
 
+        tvLandmarkDescription.setText("this where description should be Details text is toooooooooo long");
+        tvLandmarkDescription.setContentDescription("this where description should be Details text is toooooooooo long");
         return rootView;
     }
 }
