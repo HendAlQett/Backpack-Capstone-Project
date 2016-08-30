@@ -13,11 +13,11 @@
 
         <TextView
             android:id="@+id/tvLandmarkDescription"
-            style="?android:attr/textAppearanceLarge"
+            style="?android:attr/textAppearanceMedium"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="16dp"
-            android:textIsSelectable="true" />
+            />
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/btnStreetView"

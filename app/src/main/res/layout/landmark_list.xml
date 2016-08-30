@@ -9,4 +9,5 @@
     app:layoutManager="GridLayoutManager"
     app:spanCount="2"
     tools:context="com.hend.backpack.ui.LandmarkListActivity"
-    tools:listitem="@layout/landmark_list_item" />
+    tools:listitem="@layout/landmark_list_item"
+    android:background="@color/colorPrimary"/>

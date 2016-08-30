@@ -1,0 +1,58 @@
+
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="16dp"
+        tools:context="com.hend.backpack.ui.LandmarkDetailFragment">
+
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:src="@mipmap/ic_launcher"
+           />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                style="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Details"
+                android:layout_marginBottom="16dp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvLandmarkDescription"
+                style="?android:attr/textAppearanceMedium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                tools:text="kfhrejg;rekgkre fvkewjfgrkg;lr jbfegfjr;gk bjbgkhrgreg kfhrejg;rekgkre fvkewjfgrkg;lr jbfegfjr;gk bjbgkhrgreg kfhrejg;rekgkre fvkewjfgrkg;lr jbfegfjr;gk bjbgkhrgreg kfhrejg;rekgkre fvkewjfgrkg;lr jbfegfjr;gk bjbgkhrgreg" />
+
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/btnStreetView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+
+                android:contentDescription="@string/street_view"
+                android:padding="16dp"
+                android:text="@string/street_view"
+                android:textColor="@android:color/white"
+                app:backgroundTint="@color/colorAccent" />
+        </LinearLayout>
+
+
+    </LinearLayout>

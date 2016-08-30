@@ -8,7 +8,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -23,22 +26,31 @@ import com.hend.backpack.R;
 import com.hend.backpack.models.Landmark;
 import com.hend.backpack.utils.Constants;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * An activity representing a single Landmark detail screen. This
  * activity is only used narrow width devices. On tablet-size devices,
  * item details are presented side-by-side with a list of items
  * in a {@link LandmarkListActivity}.
  */
-public class LandmarkDetailActivity extends AppCompatActivity implements OnMapReadyCallback, LandmarkDetailFragment.Callback{
+public class LandmarkDetailActivity extends AppCompatActivity implements OnMapReadyCallback, LandmarkDetailFragment.Callback {
 
     AdView mAdView;
     LatLng landmarkLocation;
+    Landmark landmark;
+    @BindView(R.id.ivLandmark)
+    ImageView ivLandmark;
+    @BindView(R.id.detail_toolbar)
+    Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landmark_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        ButterKnife.bind(this);
+
         setSupportActionBar(toolbar);
         mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -46,16 +58,6 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -73,18 +75,30 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
         //
         //TODO: uncomment this if condition when handling orientation and make sure landmark location is declared
 //        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            landmarkLocation = new LatLng(30.0286342, 31.2619385);
-            Bundle arguments = new Bundle();
-            arguments.putString(LandmarkDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(LandmarkDetailFragment.ARG_ITEM_ID));
-            LandmarkDetailFragment fragment = new LandmarkDetailFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.landmark_detail_container, fragment)
-                    .commit();
+        // Create the detail fragment and add it to the activity
+        // using a fragment transaction.
+        landmark = getIntent().getParcelableExtra(Constants.LANDMARK);
+        double lat = landmark.getLatitude();
+        double lng = landmark.getLongitude();
+//        landmarkLocation = new LatLng(30.0286342, 31.2619385);
+        landmarkLocation = new LatLng(lat, lng);
+        Bundle arguments = new Bundle();
+        arguments.putParcelable(Constants.LANDMARK,
+                landmark);
+        LandmarkDetailFragment fragment = new LandmarkDetailFragment();
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.landmark_detail_container, fragment)
+                .commit();
+
 //        }
+
+        Glide.with(this).load(landmark.getImage_url())
+                .centerCrop()
+                .error(R.mipmap.ic_launcher)
+                .crossFade()
+                .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                .into(ivLandmark);
     }
 
     @Override
@@ -109,8 +123,7 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
                 .target(landmarkLocation)
                 .zoom(15)
                 .build();
-        //TODO: get location name from backend
-        MarkerOptions marker = new MarkerOptions().position(landmarkLocation).title("Location Name");
+        MarkerOptions marker = new MarkerOptions().position(landmarkLocation).title(landmark.getName_en());
         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(camera));
         //Clicking on the marker will show navigation option
         googleMap.addMarker(marker);
@@ -120,14 +133,12 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
                 .strokeColor(ContextCompat.getColor(this, R.color.colorAccent))
                 .fillColor(Color.argb(64, 25, 196, 216)));
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-
-
     }
 
     @Override
     public void onStreetViewClicked(Landmark landmark) {
         Intent streetViewIntent = new Intent(this, StreetViewActivity.class);
-        streetViewIntent.putExtra(Constants.STREET_VIEW,landmark);
+        streetViewIntent.putExtra(Constants.LANDMARK, landmark);
         startActivity(streetViewIntent);
     }
 }

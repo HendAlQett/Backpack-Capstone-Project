@@ -48,4 +48,5 @@ public class Constants {
     }
 
     public static final String STREET_VIEW= "Street_View";
+    public static final String LANDMARK= "arg_landmark";
 }

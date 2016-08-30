@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import com.hend.backpack.R;
 import com.hend.backpack.models.Landmark;
-import com.hend.backpack.ui.dummy.DummyContent;
+import com.hend.backpack.utils.Constants;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,7 +28,6 @@ public class LandmarkDetailFragment extends Fragment {
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final String ARG_ITEM_ID = "item_id";
     @BindView(R.id.tvLandmarkDescription)
     TextView tvLandmarkDescription;
     @BindView(R.id.btnStreetView)
@@ -37,7 +36,7 @@ public class LandmarkDetailFragment extends Fragment {
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private Landmark landmark;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -50,12 +49,11 @@ public class LandmarkDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
+        if (getArguments().containsKey(Constants.LANDMARK)) {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            //TODO: uncomment this later
-//            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            landmark = getArguments().getParcelable(Constants.LANDMARK);
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
@@ -74,16 +72,17 @@ public class LandmarkDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.landmark_detail, container, false);
-
-        // Show the dummy content as text in a TextView.
-//        if (mItem != null) {
-        //TODO: Uncomment this later
-//        ((TextView) rootView.findViewById(R.id.landmark_detail)).setText("this where description should be Details text is toooooooooo long");
-//        }
         ButterKnife.bind(this, rootView);
 
-        tvLandmarkDescription.setText("this where description should be Details text is toooooooooo long");
-        tvLandmarkDescription.setContentDescription("this where description should be Details text is toooooooooo long");
+        tvLandmarkDescription.setText(landmark.getDescription_en());
+        tvLandmarkDescription.setContentDescription(landmark.getDescription_en());
+
+        btnStreetView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((Callback) getActivity()).onStreetViewClicked(landmark);
+            }
+        });
         return rootView;
     }
 }
