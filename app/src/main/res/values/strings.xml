@@ -2,7 +2,7 @@
     <string name="app_name">Backpack</string>
     <string name="title_landmark_list">Landmarks</string>
     <string name="title_landmark_detail">Landmark Detail</string>
-    <string name="banner_ad_unit_id"></string>
+    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
 
     <!-- Transition type strings -->
     <string name="geofence_transition_entered">Entered</string>
@@ -58,5 +58,12 @@
     <string name="enter_transition">You are near</string>
     <string name="exit_transition">You are getting far from</string>
     <string name="street_view">Street View</string>
+    <string name="internet_check">Check your internet connection.</string>
+    <string name="internetConnection">No internet connection!</string>
+    <string name="retry">RETRY</string>
+    <string name="empty_landmarks_list">No Landmarks Information Available</string>
+    <string name="empty_landmarks_list_no_network">No Landmarks information available. The network is not available to fetch weather data.</string>
+    <string name="empty_landmarks_list_server_down">No Landmarks information available. The server is not returning data</string>
+    <string name="empty_landmarks_list_server_error">No Landmarks information available. The server is not returning valid data. Please check for an updated version of Backpack.</string>
 
 </resources>

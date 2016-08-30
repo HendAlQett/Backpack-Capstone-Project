@@ -25,11 +25,13 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
     Context mContext;
     List<Landmark> mLandmarks;
     final private LandmarkAdapterOnClickHandler mClickHandler;
+    final private View mEmptyView;
 
 
-    public LandmarkRecyclerViewAdapter(Context mContext, LandmarkAdapterOnClickHandler dh, List<Landmark> mLandmarks) {
+    public LandmarkRecyclerViewAdapter(Context mContext, LandmarkAdapterOnClickHandler dh,View emptyView, List<Landmark> mLandmarks) {
         this.mContext = mContext;
         this.mClickHandler = dh;
+        mEmptyView= emptyView;
         this.mLandmarks = mLandmarks;
 
     }
@@ -113,6 +115,7 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
         }
 
         notifyDataSetChanged();
+        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
 //        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
