@@ -19,22 +19,10 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <!--<activity-->
-            <!--android:name=".ui.MainActivity"-->
-            <!--android:theme="@style/AppTheme">-->
-
-            <!--&lt;!&ndash;<intent-filter>&ndash;&gt;-->
-            <!--&lt;!&ndash;<action android:name="android.intent.action.MAIN" />&ndash;&gt;-->
-
-
-            <!--&lt;!&ndash;<category android:name="android.intent.category.LAUNCHER" />&ndash;&gt;-->
-            <!--&lt;!&ndash;</intent-filter>&ndash;&gt;-->
-        <!--</activity>-->
+        android:theme="@style/AppTheme.NoActionBar">
         <activity
             android:name=".ui.LandmarkListActivity"
-            android:label="@string/title_landmark_list"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:label="@string/title_landmark_list">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,14 +33,7 @@
             android:name=".ui.LandmarkDetailActivity"
             android:label="@string/title_landmark_detail"
             android:parentActivityName=".ui.LandmarkListActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-
-
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
+            android:theme="@style/AppThemeDetails">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -60,15 +41,7 @@
         </activity>
         <activity
             android:name=".ui.StreetViewActivity"
-            android:label="StreetView"
-            android:theme="@style/AppTheme.NoActionBar">
-
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-
-
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
+            android:label="StreetView">
         </activity>
 
         <provider
@@ -95,11 +68,6 @@
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:theme="@style/SettingsTheme">
-            <!--<intent-filter>-->
-            <!--<action android:name="android.intent.action.MAIN" />-->
-
-            <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
         </activity>
     </application>
 
