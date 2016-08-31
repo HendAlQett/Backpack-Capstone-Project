@@ -80,7 +80,7 @@ import retrofit.client.Response;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class LandmarkListActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, LandmarkDetailFragment.Callback, LoaderManager.LoaderCallbacks<Cursor>,OnMapReadyCallback {
+public class LandmarkListActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, LandmarkDetailFragment.Callback, LoaderManager.LoaderCallbacks<Cursor>, OnMapReadyCallback {
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -92,6 +92,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     @BindView(R.id.recyclerview_landmark_empty)
     TextView recyclerviewLandmarkEmpty;
     AdView mAdView;
+    GoogleMap map;
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
@@ -166,38 +167,23 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        if (!canAccessLocation()) {
-            requestPermissions(LOCATION_PERMS, LOCATION_REQUEST);
-        }
-
+//        if (!canAccessLocation()) {
+//            requestPermissions(LOCATION_PERMS, LOCATION_REQUEST);
+//        }
         mGeofenceList = new ArrayList<>();
         // Get the geofences used. Geofence data is hard coded in this sample.
-        populateGeofenceList();
+//        populateGeofenceList();
+
 
         // Kick off the request to build GoogleApiClient.
         buildGoogleApiClient();
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//            }
-//        });
-
-
-//        recyclerView = (RecyclerView) findViewById(R.id.landmark_list);
-
         assert recyclerView != null;
         landmarksList = new ArrayList<>();
         setupRecyclerView();
-//        getLandmarksFromDatabase();
 
         if (landmarksList.isEmpty()) {
-            Log.d(LOG_TAG, "Downloading");
             getLandmarks();
-
         }
         getLoaderManager().initLoader(LANDMARK_LOADER, null, this);
 
@@ -208,8 +194,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             // activity should be in two-pane mode.
             mTwoPane = true;
         }
-        if (mTwoPane)
-        {
+        if (mTwoPane) {
             mAdView = (AdView) findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
@@ -219,12 +204,17 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        LatLng landmarkLocation = new LatLng(30.003389,31.316339);
+        map = googleMap;
+        map.getUiSettings().setZoomControlsEnabled(true);
+    }
+
+    void updateMap(GoogleMap googleMap, Landmark landmark) {
+        LatLng landmarkLocation = new LatLng(landmark.getLatitude(), landmark.getLongitude());
         CameraPosition camera = CameraPosition.builder()
                 .target(landmarkLocation)
                 .zoom(15)
                 .build();
-        MarkerOptions marker = new MarkerOptions().position(landmarkLocation).title("Title");
+        MarkerOptions marker = new MarkerOptions().position(landmarkLocation).title(landmark.getName_en());
         googleMap.moveCamera(CameraUpdateFactory.newCameraPosition(camera));
         //Clicking on the marker will show navigation option
         googleMap.addMarker(marker);
@@ -233,8 +223,8 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                 .radius(500)
                 .strokeColor(ContextCompat.getColor(this, R.color.colorAccent))
                 .fillColor(Color.argb(64, 25, 196, 216)));
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -305,21 +295,15 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     }
 
     private void setupRecyclerView() {
-//        gridLayout = new GridLayoutManager(this, 2);
         recyclerView.setHasFixedSize(true);
-//        recyclerView.setLayoutManager(gridLayout);
         adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, new LandmarkRecyclerViewAdapter.LandmarkAdapterOnClickHandler() {
             @Override
             public void onClick(Landmark landmark, LandmarkRecyclerViewAdapter.LandmarkAdapterViewHolder vh) {
-//                Toast.makeText(LandmarkListActivity.this, landmark.getName_en(), Toast.LENGTH_SHORT).show();
                 if (!mTwoPane) {
                     Intent intent = new Intent(LandmarkListActivity.this, LandmarkDetailActivity.class);
-//                Bundle bundle = new Bundle();
-//                bundle.putParcelable(LandmarkDetailFragment.ARG_LANDMARK,landmark);
                     intent.putExtra(Constants.LANDMARK, landmark);
                     startActivity(intent);
-                }
-                else {
+                } else {
                     //TODO: Send data to the fragment
                     Bundle arguments = new Bundle();
                     arguments.putParcelable(Constants.LANDMARK,
@@ -329,6 +313,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                     getSupportFragmentManager().beginTransaction()
                             .replace(R.id.landmark_detail_container, fragment)
                             .commit();
+                    updateMap(map, landmark);
                     Toast.makeText(LandmarkListActivity.this, landmark.getName_en(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -336,16 +321,29 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         recyclerView.setAdapter(adapter);
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private void getLandmarks() {
         RestClient.get().requestLandmarks(new Callback<List<Landmark>>() {
             @Override
             public void success(List<Landmark> landmarks, Response response) {
-                landmarksList.clear();
-                landmarksList = landmarks;
-                for (Landmark landmark : landmarks) {
-                    Log.d(LOG_TAG, landmark.getName_en());
+                if (landmarks != null && landmarks.size() > 0) {
+                    landmarksList.clear();
+                    landmarksList = landmarks;
+//                    for (Landmark landmark : landmarks) {
+//                        Log.d(LOG_TAG, landmark.getName_en());
+//                    }
+                    updateDatabase(LandmarkListActivity.this, landmarksList);
+
+                    addLandmarksToGeoPoints(landmarksList);
+                    populateGeofenceList();
+                    if (!canAccessLocation()) {
+                        requestPermissions(LOCATION_PERMS, LOCATION_REQUEST);
+                    } else {
+                        if (mGoogleApiClient.isConnected()) {
+                            addGeofencesHandler();
+                        }
+                    }
                 }
-                updateDatabase(LandmarkListActivity.this, landmarksList);
             }
 
             @Override
@@ -429,6 +427,12 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
     }
 
+    void addLandmarksToGeoPoints(List<Landmark> landmarks) {
+        for (Landmark landmark : landmarks) {
+            Constants.CAIRO_LANDMARKS.put(landmark.getName_en(), landmark);
+        }
+    }
+
     private void updateEmptyView() {
         if (adapter.getItemCount() == 0) {
 
@@ -498,26 +502,26 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    public void addGeofencesButtonHandler(View view) {
-        if (!mGoogleApiClient.isConnected()) {
-            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
-                    // The GeofenceRequest object.
-                    getGeofencingRequest(),
-                    // A pending intent that that is reused when calling removeGeofences(). This
-                    // pending intent is used to generate an intent when a matched geofence
-                    // transition is observed.
-                    getGeofencePendingIntent()
-            ).setResultCallback(this); // Result processed in onResult().
-        } catch (SecurityException securityException) {
-            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
-        }
-    }
+//    public void addGeofencesButtonHandler(View view) {
+//        if (!mGoogleApiClient.isConnected()) {
+//            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        try {
+//            LocationServices.GeofencingApi.addGeofences(
+//                    mGoogleApiClient,
+//                    // The GeofenceRequest object.
+//                    getGeofencingRequest(),
+//                    // A pending intent that that is reused when calling removeGeofences(). This
+//                    // pending intent is used to generate an intent when a matched geofence
+//                    // transition is observed.
+//                    getGeofencePendingIntent()
+//            ).setResultCallback(this); // Result processed in onResult().
+//        } catch (SecurityException securityException) {
+//            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
+//        }
+//    }
 
 
     void addGeofencesHandler() {
@@ -542,8 +546,8 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     }
 
     public void populateGeofenceList() {
-        //TODO: get data from websrvice
-        for (Map.Entry<String, LatLng> entry : Constants.BAY_AREA_LANDMARKS.entrySet()) {
+
+        for (Map.Entry<String, Landmark> entry : Constants.CAIRO_LANDMARKS.entrySet()) {
 
             mGeofenceList.add(new Geofence.Builder()
                     // Set the request ID of the geofence. This is a string to identify this
@@ -552,9 +556,9 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
                     // TODO: from service, Set the circular region of this geofence.
                     .setCircularRegion(
-                            entry.getValue().latitude,
-                            entry.getValue().longitude,
-                            Constants.GEOFENCE_RADIUS_IN_METERS
+                            entry.getValue().getLatitude(),
+                            entry.getValue().getLongitude(),
+                            entry.getValue().getRadius()
                     )
                     .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
@@ -562,7 +566,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
                     // Create the geofence.
                     .build());
-        }
+      }
     }
 
     /**
@@ -582,30 +586,9 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         builder.addGeofences(mGeofenceList);
         return builder.build();
     }
-
-
-    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-        //requestPermissions();
-        try {
-            LocationServices.GeofencingApi.addGeofences(
-                    mGoogleApiClient,
-                    // The GeofenceRequest object.
-                    getGeofencingRequest(),
-                    // A pending intent that that is reused when calling removeGeofences(). This
-                    // pending intent is used to generate an intent when a matched geofence
-                    // transition is observed.
-                    getGeofencePendingIntent()
-            ).setResultCallback(this); // Result processed in onResult().
-        } catch (SecurityException securityException) {
-            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
-            Log.d(LOG_TAG, securityException.getMessage());
-        }
-
     }
-
     @Override
     public void onConnectionSuspended(int i) {
         mGoogleApiClient.connect();
@@ -615,7 +598,6 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
     @Override
     public void onResult(@NonNull Status status) {
         if (status.isSuccess()) {
@@ -628,6 +610,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             // Get the status code for the error and log it using a user-friendly message.
             String errorMessage = GeofenceErrorMessages.getErrorString(this,
                     status.getStatusCode());
+            Log.d(LOG_TAG,errorMessage);
         }
     }
 

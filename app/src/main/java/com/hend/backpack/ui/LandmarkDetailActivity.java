@@ -50,7 +50,6 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landmark_detail);
         ButterKnife.bind(this);
-
         setSupportActionBar(toolbar);
         mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -61,6 +60,7 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
+
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 

@@ -59,7 +59,7 @@ public class LandmarkDetailFragment extends Fragment {
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
 //                appBarLayout.setTitle(mItem.content);
-                appBarLayout.setTitle("Details");
+                appBarLayout.setTitle(landmark.getName_en());
             }
         }
     }

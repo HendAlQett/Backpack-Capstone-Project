@@ -1,6 +1,7 @@
 package com.hend.backpack.utils;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.hend.backpack.models.Landmark;
 
 import java.util.HashMap;
 
@@ -46,7 +47,22 @@ public class Constants {
         // Test
         BAY_AREA_LANDMARKS.put("Home", new LatLng(30.003389,  31.316339));
     }
+//    public static final HashMap<String, LatLng> CAIRO_LANDMARKS = new HashMap<String, LatLng>();
+//
+//    static {
+//
+////TODO: Use the returned
+//        // Test
+//        CAIRO_LANDMARKS.put("Home", new LatLng(30.003389,  31.316339));
+//    }
 
+    public static final HashMap<String, Landmark> CAIRO_LANDMARKS = new HashMap<String, Landmark>();
+
+    static {
+
+//TODO: Use the returned
+
+    }
     public static final String STREET_VIEW= "Street_View";
     public static final String LANDMARK= "arg_landmark";
 }
