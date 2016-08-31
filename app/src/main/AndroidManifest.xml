@@ -14,7 +14,6 @@
         android:required="true" />
 
     <application
-        android:name="android.support.multidex.MultiDexApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -31,7 +30,6 @@
         </activity>
         <activity
             android:name=".ui.LandmarkDetailActivity"
-            android:label="@string/title_landmark_detail"
             android:parentActivityName=".ui.LandmarkListActivity"
             android:theme="@style/AppThemeDetails">
 
