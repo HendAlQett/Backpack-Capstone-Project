@@ -107,6 +107,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     private static final String[] LOCATION_PERMS = {
             Manifest.permission.ACCESS_FINE_LOCATION
     };
+    public static final String ACTION_DATA_UPDATED="com.hend.backpack.ACTION_DATA_UPDATED";
     private static final int INITIAL_REQUEST = 1337;
     private static final int LOCATION_REQUEST = INITIAL_REQUEST + 1;
     final static int LANDMARK_LOADER = 0;
@@ -344,6 +345,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                         }
                     }
                 }
+                updateWidgets();
             }
 
             @Override
@@ -394,6 +396,12 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         });
     }
 
+    private void updateWidgets()
+    {
+        Context context = getApplicationContext();
+        Intent dataUpdatedIntent= new Intent(ACTION_DATA_UPDATED).setPackage(context.getPackageName());
+        context.sendBroadcast(dataUpdatedIntent);
+    }
     public void updateDatabase(Context context, List<Landmark> landmarks) {
         getContentResolver().delete(LandmarkProvider.Landmarks.CONTENT_URI, null, null);
         ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>(landmarks.size());

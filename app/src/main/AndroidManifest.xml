@@ -67,6 +67,23 @@
             android:label="@string/title_activity_settings"
             android:theme="@style/SettingsTheme">
         </activity>
+        <receiver
+            android:name=".widget.AllLandmarksWidgetProvider"
+            android:label="Widget"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.hend.backpack.ACTION_DATA_UPDATED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_all_landmarks" />
+        </receiver>
+        <service
+            android:enabled="true"
+            android:name=".widget.AllLandmarksWidgetIntentService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 
 </manifest>

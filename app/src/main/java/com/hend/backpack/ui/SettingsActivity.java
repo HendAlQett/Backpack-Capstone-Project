@@ -28,24 +28,6 @@ public class SettingsActivity extends PreferenceActivity
         // Add 'general' preferences, defined in the XML file
         addPreferencesFromResource(R.xml.pref_general);
 
-
-        // For all preferences, attach an OnPreferenceChangeListener so the UI summary can be
-        // updated when the preference changes.
-//        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
-//        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_units_key)));
-//        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_art_pack_key)));
-
-        // If we are using a PlacePicker location, we need to show attributions.
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-//            mAttribution = new ImageView(this);
-//            mAttribution.setImageResource(R.drawable.powered_by_google_light);
-////
-////            if (!Utility.isLocationLatLonAvailable(this)) {
-////                mAttribution.setVisibility(View.GONE);
-////            }
-//
-//            setListFooter(mAttribution);
-//        }
     }
 
     @Override
