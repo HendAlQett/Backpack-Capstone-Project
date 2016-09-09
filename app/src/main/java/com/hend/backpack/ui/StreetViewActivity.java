@@ -26,7 +26,6 @@ public class StreetViewActivity extends AppCompatActivity implements OnStreetVie
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_street_view);
-        //TODO: Check for the internet connection -- blank screen if not internet
         if (Utility.isNetworkAvailable(this)) {
             landmark = getIntent().getParcelableExtra(Constants.LANDMARK);
             StreetViewPanoramaFragment streetViewPanoramaFragment = (StreetViewPanoramaFragment) getFragmentManager().findFragmentById(R.id.streetviewpanorama);// new StreetViewPanoramaFragment();

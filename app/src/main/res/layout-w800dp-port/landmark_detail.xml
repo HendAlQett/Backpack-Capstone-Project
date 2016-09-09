@@ -10,6 +10,7 @@
         tools:context="com.hend.backpack.ui.LandmarkDetailFragment">
 
         <ImageView
+            android:id="@+id/ivLandmark"
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_marginBottom="16dp"
@@ -17,6 +18,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:src="@mipmap/ic_launcher"
+            android:transitionName="@string/detail_icon_transition_name"
            />
 
         <LinearLayout
@@ -29,7 +31,7 @@
                 style="?android:attr/textAppearanceLarge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Details"
+                android:text="@string/details"
                 android:layout_marginBottom="16dp"
                 android:textStyle="bold"/>
 

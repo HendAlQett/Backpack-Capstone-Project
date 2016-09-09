@@ -31,6 +31,7 @@
         <activity
             android:name=".ui.LandmarkDetailActivity"
             android:parentActivityName=".ui.LandmarkListActivity"
+            android:configChanges="orientation"
             android:theme="@style/AppThemeDetails">
 
             <meta-data

@@ -8,8 +8,11 @@ import android.support.v7.widget.AppCompatButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.hend.backpack.R;
 import com.hend.backpack.models.Landmark;
 import com.hend.backpack.utils.Constants;
@@ -32,6 +35,7 @@ public class LandmarkDetailFragment extends Fragment {
     TextView tvLandmarkDescription;
     @BindView(R.id.btnStreetView)
     AppCompatButton btnStreetView;
+    static final String DETAIL_TRANSITION_ANIMATION = "DTA";
 
     /**
      * The dummy content this fragment is presenting.
@@ -58,7 +62,6 @@ public class LandmarkDetailFragment extends Fragment {
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
-//                appBarLayout.setTitle(mItem.content);
                 appBarLayout.setTitle(landmark.getName_en());
             }
         }
@@ -76,6 +79,17 @@ public class LandmarkDetailFragment extends Fragment {
 
         tvLandmarkDescription.setText(landmark.getDescription_en());
         tvLandmarkDescription.setContentDescription(landmark.getDescription_en());
+
+        if (rootView.findViewById(R.id.ivLandmark) != null) {
+
+            ImageView ivLandmark =(ImageView) rootView.findViewById(R.id.ivLandmark);
+                    Glide.with(this).load(landmark.getImage_url())
+                            .centerCrop()
+                            .error(R.mipmap.ic_launcher)
+                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                            .into(ivLandmark);
+            ivLandmark.setContentDescription(landmark.getDescription_en());
+        }
 
         btnStreetView.setOnClickListener(new View.OnClickListener() {
             @Override

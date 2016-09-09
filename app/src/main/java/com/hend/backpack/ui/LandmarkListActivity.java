@@ -21,7 +21,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -107,7 +110,10 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     private static final String[] LOCATION_PERMS = {
             Manifest.permission.ACCESS_FINE_LOCATION
     };
-    public static final String ACTION_DATA_UPDATED="com.hend.backpack.ACTION_DATA_UPDATED";
+    private int mPosition = RecyclerView.NO_POSITION;
+    private static final String SELECTED_KEY = "selected_position";
+    Bundle instanceState;
+    public static final String ACTION_DATA_UPDATED = "com.hend.backpack.ACTION_DATA_UPDATED";
     private static final int INITIAL_REQUEST = 1337;
     private static final int LOCATION_REQUEST = INITIAL_REQUEST + 1;
     final static int LANDMARK_LOADER = 0;
@@ -131,20 +137,6 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             LandmarkColumns.FLAG_STREET_VIEW
     };
 
-    // These indices are tied to LANDMARKS_COLUMNS.  If LANDMARKS_COLUMNS changes, these
-    // must change.
-    static final int COL_ID = 0;
-    static final int COL_LANDMARK_ID = 1;
-    static final int COL_LANDMARK_NAME_EN = 2;
-    static final int COL_LANDMARK_NAME_AR = 3;
-    static final int COL_LANDMARK_DESCRIPTION_EN = 4;
-    static final int COL_LANDMARK_DESCRIPTION_AR = 5;
-    static final int COL_LANDMARK_IMAGE_URL = 6;
-    static final int COL_LATITUDE = 7;
-    static final int COL_LONGITUDE = 8;
-    static final int COL_LANDMARK_RADIUS = 9;
-    static final int COL_FLAG_STREET_VIEW = 10;
-
 
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({LANDMARK_STATUS_OK, LANDMARK_STATUS_SERVER_DOWN, LANDMARK_STATUS_SERVER_INVALID, LANDMARK_STATUS_UNKNOWN, LANDMARK_STATUS_NETWORK_ERROR})
@@ -167,14 +159,8 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
-
-//        if (!canAccessLocation()) {
-//            requestPermissions(LOCATION_PERMS, LOCATION_REQUEST);
-//        }
         mGeofenceList = new ArrayList<>();
-        // Get the geofences used. Geofence data is hard coded in this sample.
-//        populateGeofenceList();
-
+        instanceState = savedInstanceState;
 
         // Kick off the request to build GoogleApiClient.
         buildGoogleApiClient();
@@ -184,9 +170,18 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         setupRecyclerView();
 
         if (landmarksList.isEmpty()) {
-            getLandmarks();
+            if (savedInstanceState == null) {
+                getLandmarks();
+
+            } else {
+                landmarksList = savedInstanceState.getParcelableArrayList(Constants.LANDMARK_LIST);
+
+//                mForecastAdapter.onRestoreInstanceState(savedInstanceState);
+            }
+
+            getLoaderManager().initLoader(LANDMARK_LOADER, null, this);
         }
-        getLoaderManager().initLoader(LANDMARK_LOADER, null, this);
+
 
         if (findViewById(R.id.landmark_detail_container) != null) {
             // The detail container view will be present only in the
@@ -201,6 +196,16 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             mAdView.loadAd(adRequest);
 
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(Constants.LANDMARK_LIST, (ArrayList) landmarksList);
+        if (mPosition != RecyclerView.NO_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+        super.onSaveInstanceState(outState);
+
     }
 
     @Override
@@ -300,26 +305,39 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, new LandmarkRecyclerViewAdapter.LandmarkAdapterOnClickHandler() {
             @Override
             public void onClick(Landmark landmark, LandmarkRecyclerViewAdapter.LandmarkAdapterViewHolder vh) {
+                mPosition = vh.getAdapterPosition();
                 if (!mTwoPane) {
                     Intent intent = new Intent(LandmarkListActivity.this, LandmarkDetailActivity.class);
                     intent.putExtra(Constants.LANDMARK, landmark);
-                    startActivity(intent);
+                    //TODO: Animation
+                    ActivityOptionsCompat activityOptions =
+                            ActivityOptionsCompat.makeSceneTransitionAnimation(LandmarkListActivity.this,
+                                    new Pair<View, String>(vh.ivLandmark, getString(R.string.detail_icon_transition_name)));
+                    ActivityCompat.startActivity(LandmarkListActivity.this, intent, activityOptions.toBundle());
                 } else {
-                    //TODO: Send data to the fragment
-                    Bundle arguments = new Bundle();
-                    arguments.putParcelable(Constants.LANDMARK,
-                            landmark);
-                    LandmarkDetailFragment fragment = new LandmarkDetailFragment();
-                    fragment.setArguments(arguments);
-                    getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.landmark_detail_container, fragment)
-                            .commit();
-                    updateMap(map, landmark);
-                    Toast.makeText(LandmarkListActivity.this, landmark.getName_en(), Toast.LENGTH_SHORT).show();
+
+                    performClickInLandscape(landmarksList, mPosition);
                 }
             }
         }, recyclerviewLandmarkEmpty, landmarksList);
+
         recyclerView.setAdapter(adapter);
+
+
+    }
+
+    void performClickInLandscape(List<Landmark> landmarks, int position) {
+        Landmark landmark = landmarks.get(position);
+        Bundle arguments = new Bundle();
+        arguments.putParcelable(Constants.LANDMARK, landmark);
+        LandmarkDetailFragment fragment = new LandmarkDetailFragment();
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.landmark_detail_container, fragment)
+                .commit();
+        //TODO
+        updateMap(map, landmark);
+        Toast.makeText(LandmarkListActivity.this, landmark.getName_en(), Toast.LENGTH_SHORT).show();
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -330,10 +348,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                 if (landmarks != null && landmarks.size() > 0) {
                     landmarksList.clear();
                     landmarksList = landmarks;
-//                    for (Landmark landmark : landmarks) {
-//                        Log.d(LOG_TAG, landmark.getName_en());
-//                    }
-                    updateDatabase(LandmarkListActivity.this, landmarksList);
+                    updateDatabase(landmarksList);
 
                     addLandmarksToGeoPoints(landmarksList);
                     populateGeofenceList();
@@ -346,6 +361,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                     }
                 }
                 updateWidgets();
+
             }
 
             @Override
@@ -354,10 +370,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                 Log.e(LOG_TAG, error.getMessage());
                 switch (error.getKind()) {
                     case HTTP:
-                        // TODO get message from getResponse()'s body or HTTP status 404 Web page not available
-                        Log.e(LOG_TAG, error.getResponse().getReason());
-                        Log.e(LOG_TAG, "" + error.getResponse().getStatus());
-                        // Invalid
+                        // get message from getResponse()'s body or HTTP status 404 Web page not available
                         status = LANDMARK_STATUS_SERVER_DOWN;
                         updateEmptyView();
                         break;
@@ -382,8 +395,6 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                         updateEmptyView();
                         break;
                     case UNEXPECTED:
-//                        status = LANDMARK_STATUS_UNKNOWN;
-//                        updateEmptyView();
                         throw error;
 
                     default:
@@ -391,18 +402,17 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                         //Server is down
                 }
 
-//                Log.d(LOG_TAG,error.getBody().toString());
             }
         });
     }
 
-    private void updateWidgets()
-    {
+    private void updateWidgets() {
         Context context = getApplicationContext();
-        Intent dataUpdatedIntent= new Intent(ACTION_DATA_UPDATED).setPackage(context.getPackageName());
+        Intent dataUpdatedIntent = new Intent(ACTION_DATA_UPDATED).setPackage(context.getPackageName());
         context.sendBroadcast(dataUpdatedIntent);
     }
-    public void updateDatabase(Context context, List<Landmark> landmarks) {
+
+    public void updateDatabase(List<Landmark> landmarks) {
         getContentResolver().delete(LandmarkProvider.Landmarks.CONTENT_URI, null, null);
         ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>(landmarks.size());
 
@@ -425,13 +435,10 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
         try {
             getContentResolver().applyBatch(LandmarkProvider.AUTHORITY, batchOperations);
-            //TODO: get called from Loader
-//            getLandmarksFromDatabase();
             Log.d(LOG_TAG, "Data is inserted");
         } catch (RemoteException | OperationApplicationException e) {
             Log.e("Insert Error", "Error applying batch insert", e);
         }
-
 
     }
 
@@ -464,72 +471,12 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         }
     }
 
-//    void getLandmarksFromDatabase() {
-//        landmarksList.clear();
-//        Cursor cursor = getContentResolver().query(LandmarkProvider.Landmarks.CONTENT_URI,
-//                null, null, null, null);
-//        if (cursor.getCount() != 0 && cursor != null) {
-//            Log.d(LOG_TAG, "Getting from Provider");
-//            int landmarkId, radius;
-//            boolean streetView;
-//            Double latitude, longitude;
-//            String nameEn, nameAr, descriptionEn, descriptionAr, imageUrl;
-//
-//            for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
-//
-//                landmarkId = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_ID));
-//                nameEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_EN));
-//                nameAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_NAME_AR));
-//                descriptionEn = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_EN));
-//                descriptionAr = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_DESCRIPTION_AR));
-//                imageUrl = cursor.getString(cursor.getColumnIndex(LandmarkColumns.LANDMARK_IMAGE_URL));
-//                latitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LATITUDE));
-//                longitude = cursor.getDouble(cursor.getColumnIndex(LandmarkColumns.LONGITUDE));
-//                radius = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.LANDMARK_RADIUS));
-//                streetView = cursor.getInt(cursor.getColumnIndex(LandmarkColumns.FLAG_STREET_VIEW)) > 0 ? true : false;
-//
-//                Landmark landmark = new Landmark(landmarkId, nameEn, nameAr, descriptionEn, descriptionAr, imageUrl, latitude, longitude, radius, streetView);
-//                landmarksList.add(landmark);
-//            }
-//
-//            cursor.close();
-//        }
-//        if (landmarksList.size() > 0) {
-////            adapter = new LandmarkRecyclerViewAdapter(LandmarkListActivity.this, landmarksList);
-////            recyclerView.setAdapter(adapter);
-//            adapter.notifyDataSetChanged();
-//        }
-//
-//
-//    }
-
 
     private PendingIntent getGeofencePendingIntent() {
         Intent intent = new Intent(this, GeoFenceTransitionsIntentService.class);
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling addgeoFences()
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
-
-//    public void addGeofencesButtonHandler(View view) {
-//        if (!mGoogleApiClient.isConnected()) {
-//            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        try {
-//            LocationServices.GeofencingApi.addGeofences(
-//                    mGoogleApiClient,
-//                    // The GeofenceRequest object.
-//                    getGeofencingRequest(),
-//                    // A pending intent that that is reused when calling removeGeofences(). This
-//                    // pending intent is used to generate an intent when a matched geofence
-//                    // transition is observed.
-//                    getGeofencePendingIntent()
-//            ).setResultCallback(this); // Result processed in onResult().
-//        } catch (SecurityException securityException) {
-//            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
-//        }
-//    }
 
 
     void addGeofencesHandler() {
@@ -561,8 +508,6 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
                     // Set the request ID of the geofence. This is a string to identify this
                     // geofence.
                     .setRequestId(entry.getKey())
-
-                    // TODO: from service, Set the circular region of this geofence.
                     .setCircularRegion(
                             entry.getValue().getLatitude(),
                             entry.getValue().getLongitude(),
@@ -574,7 +519,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
                     // Create the geofence.
                     .build());
-      }
+        }
     }
 
     /**
@@ -594,9 +539,11 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         builder.addGeofences(mGeofenceList);
         return builder.build();
     }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
     }
+
     @Override
     public void onConnectionSuspended(int i) {
         mGoogleApiClient.connect();
@@ -606,6 +553,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
     @Override
     public void onResult(@NonNull Status status) {
         if (status.isSuccess()) {
@@ -618,7 +566,7 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
             // Get the status code for the error and log it using a user-friendly message.
             String errorMessage = GeofenceErrorMessages.getErrorString(this,
                     status.getStatusCode());
-            Log.d(LOG_TAG,errorMessage);
+            Log.d(LOG_TAG, errorMessage);
         }
     }
 
@@ -631,7 +579,6 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
-//        Uri landmarkUri = LandmarkProvider.Landmarks.CONTENT_URI
         return new CursorLoader(this, LandmarkProvider.Landmarks.CONTENT_URI, LANDMARK_COLUMNS, null, null, null);
     }
 
@@ -639,6 +586,19 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         Log.d(LOG_TAG, "onLoadFinished");
         adapter.swapCursor(data);
+        if (data != null && mTwoPane) {
+
+            if (instanceState != null && instanceState.containsKey(SELECTED_KEY)) {
+                // The Recycler View probably hasn't even been populated yet.  Actually perform the
+                // swapout in onLoadFinished.
+                mPosition = instanceState.getInt(SELECTED_KEY);
+                performClickInLandscape(landmarksList, mPosition);
+            } else {
+                performClickInLandscape(landmarksList, 0);
+            }
+
+        }
+
     }
 
     @Override
@@ -647,73 +607,4 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         adapter.swapCursor(null);
     }
 
-
-//    public class SimpleItemRecyclerViewAdapter
-//            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-//
-//        private final List<DummyContent.DummyItem> mValues;
-//
-//        public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
-//            mValues = items;
-//        }
-//
-//        @Override
-//        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-//            View view = LayoutInflater.from(parent.getContext())
-//                    .inflate(R.layout.landmark_list_content, parent, false);
-//            return new ViewHolder(view);
-//        }
-//
-//        @Override
-//        public void onBindViewHolder(final ViewHolder holder, int position) {
-//            holder.mItem = mValues.get(position);
-//            holder.mIdView.setText(mValues.get(position).id);
-//            holder.mContentView.setText(mValues.get(position).content);
-//
-//            holder.mView.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    if (mTwoPane) {
-//                        Bundle arguments = new Bundle();
-//                        arguments.putString(LandmarkDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-//                        LandmarkDetailFragment fragment = new LandmarkDetailFragment();
-//                        fragment.setArguments(arguments);
-//                        getSupportFragmentManager().beginTransaction()
-//                                .replace(R.id.landmark_detail_container, fragment)
-//                                .commit();
-//                    } else {
-//                        Context context = v.getContext();
-//                        Intent intent = new Intent(context, LandmarkDetailActivity.class);
-//                        intent.putExtra(LandmarkDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-//
-//                        context.startActivity(intent);
-//                    }
-//                }
-//            });
-//        }
-//
-//        @Override
-//        public int getItemCount() {
-//            return mValues.size();
-//        }
-//
-//        public class ViewHolder extends RecyclerView.ViewHolder {
-//            public final View mView;
-//            public final TextView mIdView;
-//            public final TextView mContentView;
-//            public DummyContent.DummyItem mItem;
-//
-//            public ViewHolder(View view) {
-//                super(view);
-//                mView = view;
-//                mIdView = (TextView) view.findViewById(R.id.id);
-//                mContentView = (TextView) view.findViewById(R.id.content);
-//            }
-//
-//            @Override
-//            public String toString() {
-//                return super.toString() + " '" + mContentView.getText() + "'";
-//            }
-//        }
-//    }
 }
