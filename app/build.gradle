@@ -43,6 +43,9 @@ android {
         preDexLibraries true
         maxProcessCount 4
     }
+    lintOptions {
+        checkReleaseBuilds false
+    }
 }
 
 dependencies {
