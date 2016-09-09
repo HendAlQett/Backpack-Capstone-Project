@@ -3,9 +3,16 @@ apply plugin: 'com.neenbedankt.android-apt'
 
 
 android {
+    signingConfigs {
+        signingconfig {
+            keyAlias 'backpackalias'
+            keyPassword 'password'
+            storeFile file("$rootDir/app/backpack.jks")
+            storePassword 'password'
+        }
+    }
     compileSdkVersion 24
     buildToolsVersion "23.0.3"
-
     defaultConfig {
         applicationId "com.hend.backpack"
         minSdkVersion 16
@@ -20,6 +27,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.signingconfig
         }
     }
     apt {
@@ -39,8 +47,6 @@ android {
 //        }
 //    }
 //    apply plugin: 'com.neenbedankt.android-apt'
-
-
     dexOptions {
         javaMaxHeapSize "2g"
         dexInProcess = true
@@ -48,7 +54,6 @@ android {
         preDexLibraries true
         maxProcessCount 4
     }
-
 }
 
 dependencies {
