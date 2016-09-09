@@ -3,7 +3,16 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
-    <dimen name="app_bar_height">200dp</dimen>
-    <dimen name="item_width">200dp</dimen>
+    <dimen name="app_bar_height">400dp</dimen>
+    <dimen name="item_width">300dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+
+    <dimen name="widget_landmark_default_width">250dp</dimen>
+    <dimen name="widget_landmark_default_height">110dp</dimen>
+    <dimen name="widget_all_landmarks_default_width">280dp</dimen>
+    <dimen name="widget_all_landmarks_default_height">100dp</dimen>
+    <dimen name="widget_all_landmarks_min_resize_width">220dp</dimen>
+    <dimen name="widget_all_landmarks_min_resize_height">@dimen/widget_all_landmarks_default_height</dimen>
+    <dimen name="widget_margin">8dp</dimen>
+
 </resources>

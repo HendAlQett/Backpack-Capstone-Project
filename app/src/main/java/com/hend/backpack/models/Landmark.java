@@ -1,12 +1,15 @@
 package com.hend.backpack.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 /**
  * Created by hend on 8/12/16.
  */
 
-public class Landmark {
+public class Landmark implements Parcelable {
     @SerializedName("id")
     int id;
     @SerializedName("name_en")
@@ -40,6 +43,31 @@ public class Landmark {
         this.radius = radius;
         this.street_view = street_view;
     }
+
+    protected Landmark(Parcel in) {
+        id = in.readInt();
+        name_en = in.readString();
+        name_ar = in.readString();
+        description_en = in.readString();
+        description_ar = in.readString();
+        image_url = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        radius = in.readInt();
+        street_view = in.readByte() != 0;
+    }
+
+    public static final Creator<Landmark> CREATOR = new Creator<Landmark>() {
+        @Override
+        public Landmark createFromParcel(Parcel in) {
+            return new Landmark(in);
+        }
+
+        @Override
+        public Landmark[] newArray(int size) {
+            return new Landmark[size];
+        }
+    };
 
     public int getId() {
         return id;
@@ -119,5 +147,24 @@ public class Landmark {
 
     public void setStreet_view(boolean street_view) {
         this.street_view = street_view;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(id);
+        parcel.writeString(name_en);
+        parcel.writeString(name_ar);
+        parcel.writeString(description_en);
+        parcel.writeString(description_ar);
+        parcel.writeString(image_url);
+        parcel.writeDouble(latitude);
+        parcel.writeDouble(longitude);
+        parcel.writeInt(radius);
+        parcel.writeByte((byte) (street_view ? 1 : 0));
     }
 }

@@ -4,13 +4,21 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.AppCompatButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.hend.backpack.R;
-import com.hend.backpack.ui.dummy.DummyContent;
+import com.hend.backpack.models.Landmark;
+import com.hend.backpack.utils.Constants;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * A fragment representing a single Landmark detail screen.
@@ -23,12 +31,16 @@ public class LandmarkDetailFragment extends Fragment {
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final String ARG_ITEM_ID = "item_id";
+    @BindView(R.id.tvLandmarkDescription)
+    TextView tvLandmarkDescription;
+    @BindView(R.id.btnStreetView)
+    AppCompatButton btnStreetView;
+    static final String DETAIL_TRANSITION_ANIMATION = "DTA";
 
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private Landmark landmark;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -41,33 +53,50 @@ public class LandmarkDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
+        if (getArguments().containsKey(Constants.LANDMARK)) {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            //TODO: uncomment this later
-//            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            landmark = getArguments().getParcelable(Constants.LANDMARK);
 
             Activity activity = this.getActivity();
             CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
-//                appBarLayout.setTitle(mItem.content);
-                appBarLayout.setTitle("Details");
+                appBarLayout.setTitle(landmark.getName_en());
             }
         }
+    }
+
+    public interface Callback {
+        public void onStreetViewClicked(Landmark landmark);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.landmark_detail, container, false);
+        ButterKnife.bind(this, rootView);
 
-        // Show the dummy content as text in a TextView.
-//        if (mItem != null) {
-            //TODO: Uncomment this later
-            ((TextView) rootView.findViewById(R.id.landmark_detail)).setText("this where description should be Details text is toooooooooo long");
-//        }
+        tvLandmarkDescription.setText(landmark.getDescription_en());
+        tvLandmarkDescription.setContentDescription(landmark.getDescription_en());
 
+        if (rootView.findViewById(R.id.ivLandmark) != null) {
+
+            ImageView ivLandmark =(ImageView) rootView.findViewById(R.id.ivLandmark);
+                    Glide.with(this).load(landmark.getImage_url())
+                            .centerCrop()
+                            .error(R.mipmap.ic_launcher)
+                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                            .into(ivLandmark);
+            ivLandmark.setContentDescription(landmark.getDescription_en());
+        }
+
+        btnStreetView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((Callback) getActivity()).onStreetViewClicked(landmark);
+            }
+        });
         return rootView;
     }
 }

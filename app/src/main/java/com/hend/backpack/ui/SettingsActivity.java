@@ -28,24 +28,6 @@ public class SettingsActivity extends PreferenceActivity
         // Add 'general' preferences, defined in the XML file
         addPreferencesFromResource(R.xml.pref_general);
 
-
-        // For all preferences, attach an OnPreferenceChangeListener so the UI summary can be
-        // updated when the preference changes.
-//        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_location_key)));
-//        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_units_key)));
-//        bindPreferenceSummaryToValue(findPreference(getString(R.string.pref_art_pack_key)));
-
-        // If we are using a PlacePicker location, we need to show attributions.
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-//            mAttribution = new ImageView(this);
-//            mAttribution.setImageResource(R.drawable.powered_by_google_light);
-////
-////            if (!Utility.isLocationLatLonAvailable(this)) {
-////                mAttribution.setVisibility(View.GONE);
-////            }
-//
-//            setListFooter(mAttribution);
-//        }
     }
 
     @Override
@@ -157,63 +139,5 @@ public class SettingsActivity extends PreferenceActivity
         //It will check the if the MainActivity in the stack
         return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     }
-
-//
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        // Check to see if the result is from our Place Picker intent
-//        if (requestCode == PLACE_PICKER_REQUEST) {
-//            // Make sure the request was successful
-//            if (resultCode == RESULT_OK) {
-//                Place place = PlacePicker.getPlace(data, this);
-//                String address = place.getAddress().toString();
-//                // TODO(student): Get the LatLng object from the place -- this is a placeholder.
-////                LatLng latLong = new LatLng(37.422503f, -122.083939f);
-//                LatLng latLong = place.getLatLng();
-//
-//                // If the provided place doesn't have an address, we'll form a display-friendly
-//                // string from the latlng values.
-//                if (TextUtils.isEmpty(address)) {
-//                    address = String.format("(%.2f, %.2f)", latLong.latitude, latLong.longitude);
-//                }
-//
-//                SharedPreferences sharedPreferences =
-//                        PreferenceManager.getDefaultSharedPreferences(this);
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
-//                editor.putString(getString(R.string.pref_location_key), address);
-//                // Also store the latitude and longitude so that we can use these to get a precise
-//                // result from our weather service. We cannot expect the weather service to
-//                // understand addresses that Google formats.
-//                // TODO(student) Store the latitude and longitude as float values according to the
-//                // keys defined in strings.xml.
-//                editor.putFloat(getString(R.string.pref_location_latitude),
-//                        (float) latLong.latitude);
-//                editor.putFloat(getString(R.string.pref_location_longitude),
-//                        (float) latLong.longitude);
-//                editor.commit();
-//
-//                // Tell the SyncAdapter that we've changed the location, so that we can update
-//                // our UI with new values. We need to do this manually because we are responding
-//                // to the PlacePicker widget result here instead of allowing the
-//                // LocationEditTextPreference to handle these changes and invoke our callbacks.
-//                Preference locationPreference = findPreference(getString(R.string.pref_location_key));
-//                setPreferenceSummary(locationPreference, address);
-//
-//                // Add attributions for our new PlacePicker location.
-//                if (mAttribution != null) {
-//                    mAttribution.setVisibility(View.VISIBLE);
-//                } else {
-//                    // For pre-Honeycomb devices, we cannot add a footer, so we will use a snackbar
-//                    View rootView = findViewById(android.R.id.content);
-//                    Snackbar.make(rootView, getString(R.string.attribution_text),
-//                            Snackbar.LENGTH_LONG).show();
-//                }
-//                Utility.resetLocationStatus(this);
-//                SunshineSyncAdapter.syncImmediately(this);
-//            }
-//        } else {
-//            super.onActivityResult(requestCode, resultCode, data);
-//        }
-//    }
 
 }

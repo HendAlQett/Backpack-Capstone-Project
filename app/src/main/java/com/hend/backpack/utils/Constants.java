@@ -1,6 +1,6 @@
 package com.hend.backpack.utils;
 
-import com.google.android.gms.maps.model.LatLng;
+import com.hend.backpack.models.Landmark;
 
 import java.util.HashMap;
 
@@ -34,16 +34,27 @@ public class Constants {
     /**
      * Map for storing information about airports in the San Francisco bay area.
      */
-    public static final HashMap<String, LatLng> BAY_AREA_LANDMARKS = new HashMap<String, LatLng>();
+//    public static final HashMap<String, LatLng> BAY_AREA_LANDMARKS = new HashMap<String, LatLng>();
+//
+//    static {
+////        // San Francisco International Airport.
+////        BAY_AREA_LANDMARKS.put("SFO", new LatLng(37.621313, -122.378955));
+////
+////        // Googleplex.
+////        BAY_AREA_LANDMARKS.put("GOOGLE", new LatLng(37.422611, -122.0840577));
+
+//        // Test
+//        BAY_AREA_LANDMARKS.put("Home", new LatLng(30.003389,  31.316339));
+//    }
+
+
+    public static final HashMap<String, Landmark> CAIRO_LANDMARKS = new HashMap<String, Landmark>();
 
     static {
-//        // San Francisco International Airport.
-//        BAY_AREA_LANDMARKS.put("SFO", new LatLng(37.621313, -122.378955));
-//
-//        // Googleplex.
-//        BAY_AREA_LANDMARKS.put("GOOGLE", new LatLng(37.422611, -122.0840577));
-//TODO: Use the returned
-        // Test
-        BAY_AREA_LANDMARKS.put("Home", new LatLng(30.003389,  31.316339));
+
+
     }
+    public static final String STREET_VIEW= "Street_View";
+    public static final String LANDMARK= "arg_landmark";
+    public static final String LANDMARK_LIST= "arg_landmarks_list";
 }
