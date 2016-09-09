@@ -73,19 +73,19 @@ public class LandmarkDetailActivity extends AppCompatActivity implements OnMapRe
         //
         // http://developer.android.com/guide/components/fragments.html
         //
-            landmark = getIntent().getParcelableExtra(Constants.LANDMARK);
-            double lat = landmark.getLatitude();
-            double lng = landmark.getLongitude();
-            landmarkLocation = new LatLng(lat, lng);
-            Bundle arguments = new Bundle();
-            arguments.putParcelable(Constants.LANDMARK,
-                    landmark);
-            arguments.putBoolean(LandmarkDetailFragment.DETAIL_TRANSITION_ANIMATION, true);
-            LandmarkDetailFragment fragment = new LandmarkDetailFragment();
-            fragment.setArguments(arguments);
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.landmark_detail_container, fragment)
-                    .commit();
+        landmark = getIntent().getParcelableExtra(Constants.LANDMARK);
+        double lat = landmark.getLatitude();
+        double lng = landmark.getLongitude();
+        landmarkLocation = new LatLng(lat, lng);
+        Bundle arguments = new Bundle();
+        arguments.putParcelable(Constants.LANDMARK,
+                landmark);
+        arguments.putBoolean(LandmarkDetailFragment.DETAIL_TRANSITION_ANIMATION, true);
+        LandmarkDetailFragment fragment = new LandmarkDetailFragment();
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.landmark_detail_container, fragment)
+                .commit();
 
 
         Glide.with(this).load(landmark.getImage_url())

@@ -322,8 +322,6 @@ public class LandmarkListActivity extends AppCompatActivity implements GoogleApi
         }, recyclerviewLandmarkEmpty, landmarksList);
 
         recyclerView.setAdapter(adapter);
-
-
     }
 
     void performClickInLandscape(List<Landmark> landmarks, int position) {

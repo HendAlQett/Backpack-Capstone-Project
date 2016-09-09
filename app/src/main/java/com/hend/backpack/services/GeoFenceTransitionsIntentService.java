@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
- * <p>
+ * <p/>
  * helper methods.
  */
 public class GeoFenceTransitionsIntentService extends IntentService {
@@ -55,7 +55,7 @@ public class GeoFenceTransitionsIntentService extends IntentService {
         }
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
-        Log.d(TAG, "Transition: "+geofenceTransition);
+        Log.d(TAG, "Transition: " + geofenceTransition);
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             // Get the geofences that were triggered. A single event can trigger multiple geofences.
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
@@ -85,10 +85,9 @@ public class GeoFenceTransitionsIntentService extends IntentService {
 
         String geofenceTransitionString = getTransitionString(geofenceTransition);
 //        String geofenceTransitionString;
-        if (geofenceTransition==1) {
-             geofenceTransitionString = getString(R.string.enter_transition);
-        }
-        else if(geofenceTransition==2){
+        if (geofenceTransition == 1) {
+            geofenceTransitionString = getString(R.string.enter_transition);
+        } else if (geofenceTransition == 2) {
             geofenceTransitionString = getString(R.string.exit_transition);
         }
 
@@ -123,7 +122,7 @@ public class GeoFenceTransitionsIntentService extends IntentService {
 
         if (displayNotifications) {
 
-            Intent notificationIntent = new Intent(getApplicationContext(),LandmarkListActivity.class);
+            Intent notificationIntent = new Intent(getApplicationContext(), LandmarkListActivity.class);
 
             // Construct a task stack.
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);

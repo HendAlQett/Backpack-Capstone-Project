@@ -30,9 +30,8 @@ public class StreetViewActivity extends AppCompatActivity implements OnStreetVie
             landmark = getIntent().getParcelableExtra(Constants.LANDMARK);
             StreetViewPanoramaFragment streetViewPanoramaFragment = (StreetViewPanoramaFragment) getFragmentManager().findFragmentById(R.id.streetviewpanorama);// new StreetViewPanoramaFragment();
             streetViewPanoramaFragment.getStreetViewPanoramaAsync(this);
-        }else
-        {
-            Toast.makeText(this, R.string.internet_check,Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, R.string.internet_check, Toast.LENGTH_SHORT).show();
         }
     }
 

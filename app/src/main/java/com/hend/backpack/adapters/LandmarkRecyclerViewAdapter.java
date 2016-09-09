@@ -105,14 +105,8 @@ public class LandmarkRecyclerViewAdapter extends RecyclerView.Adapter<LandmarkRe
         public void onClick(View v) {
 
             int adapterPosition = getAdapterPosition();
-//            mCursor.moveToPosition(adapterPosition);
-//            int dateColumnIndex = mCursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
             mClickHandler.onClick(mLandmarks.get(adapterPosition), this);
 
-//            mCursor.moveToPosition(adapterPosition);
-//            int dateColumnIndex = mCursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_DATE);
-//            mClickHandler.onClick(mCursor.getLong(dateColumnIndex), this);
-//            mICM.onClick(this);
         }
     }
 

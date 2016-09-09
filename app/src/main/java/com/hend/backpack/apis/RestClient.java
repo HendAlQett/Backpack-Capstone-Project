@@ -19,14 +19,11 @@ import retrofit.converter.GsonConverter;
  */
 public class RestClient {
 
-    //static Api REST_CLIENT;
     static Api REST_CLIENT;
-    //static String ENDPOINT = "http://nazzelha.com";
     static String ENDPOINT = "https://demo9152934.mockable.io";
 
 
     static {
-        //  setupRestClient();
         setupRestClient();
 
     }

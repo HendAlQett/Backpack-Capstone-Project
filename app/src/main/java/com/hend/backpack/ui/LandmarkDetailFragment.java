@@ -82,12 +82,12 @@ public class LandmarkDetailFragment extends Fragment {
 
         if (rootView.findViewById(R.id.ivLandmark) != null) {
 
-            ImageView ivLandmark =(ImageView) rootView.findViewById(R.id.ivLandmark);
-                    Glide.with(this).load(landmark.getImage_url())
-                            .centerCrop()
-                            .error(R.mipmap.ic_launcher)
-                            .diskCacheStrategy(DiskCacheStrategy.SOURCE)
-                            .into(ivLandmark);
+            ImageView ivLandmark = (ImageView) rootView.findViewById(R.id.ivLandmark);
+            Glide.with(this).load(landmark.getImage_url())
+                    .centerCrop()
+                    .error(R.mipmap.ic_launcher)
+                    .diskCacheStrategy(DiskCacheStrategy.SOURCE)
+                    .into(ivLandmark);
             ivLandmark.setContentDescription(landmark.getDescription_en());
         }
 
